@@ -111,22 +111,23 @@ app.post('/chat', async (req, res) => {
   try {
     if (model === 'claude') {
       // 调用 Claude API
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.CLAUDE_API_KEY,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: settings?.max_tokens || 1000,
-          system: systemPrompt,
-          messages
-        })
-      })
-      const data = await response.json()
-      reply = data.content?.[0]?.text || '出错了，请重试'
+      const response = await fetch('https://burn.hair/v1/chat/completions', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${process.env.CLAUDE_API_KEY}`
+  },
+  body: JSON.stringify({
+    model: 'claude-sonnet-4-6',
+    max_tokens: settings?.max_tokens || 1000,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...messages
+    ]
+  })
+})
+const data = await response.json()
+reply = data.choices?.[0]?.message?.content || '出错了，请重试'
     } else {
       // 调用 DeepSeek API
       const response = await fetch('https://api.deepseek.com/chat/completions', {
@@ -144,10 +145,11 @@ app.post('/chat', async (req, res) => {
           ]
         })
       })
-      const data = await response.json()
-      reply = data.choices?.[0]?.message?.content || '出错了，请重试'
-    }
-  } catch (e) {
+     const data = await response.json()
+console.log('API返回：', JSON.stringify(data))
+reply = data.choices?.[0]?.message?.content || '出错了，请重试'
+} catch (e) {
+    console.log('API调用错误：', e.message)
     reply = '请求失败，请检查 API Key 配置'
   }
 
@@ -194,4 +196,4 @@ app.post('/chat', async (req, res) => {
   res.json({ reply })
 })
 
-app.listen(3000, () => console.log('服务器启动成功，端口 3000'))
+app.listen(3000, '0.0.0.0', () => console.log('服务器启动成功，端口 3000'))
