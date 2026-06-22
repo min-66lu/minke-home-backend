@@ -145,7 +145,7 @@ reply = data.choices?.[0]?.message?.content || '出错了，请重试'
           ]
         })
       })
-     const data = await response.json()
+const data = await response.json()
 console.log('API返回：', JSON.stringify(data))
 reply = data.choices?.[0]?.message?.content || '出错了，请重试'
 } catch (e) {
